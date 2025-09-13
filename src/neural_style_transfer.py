@@ -13,12 +13,21 @@ import base64
 # Initialize Ray
 ray.init()
 
+def get_best_device():
+    """Get the best available device with proper fallback order: CUDA -> MPS -> CPU"""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        return torch.device("mps")
+    else:
+        return torch.device("cpu")
+
 class VGGFeatures(nn.Module):
     """Extract features from VGG19 for style transfer"""
     def __init__(self):
         super(VGGFeatures, self).__init__()
         # Load pre-trained VGG19
-        vgg = models.vgg19(pretrained=True).features
+        vgg = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1).features
         self.layers = nn.ModuleList(vgg[:29])  # Up to conv4_4
         
         # Freeze parameters
@@ -134,7 +143,7 @@ def style_transfer_step(target, content_features, style_features, model,
 class StyleTransferPredictor:
     """Ray predictor class for style transfer"""
     def __init__(self, style_image_path):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = get_best_device()
         self.model = StyleTransferModel().to(self.device)
         self.model.eval()
         
@@ -213,10 +222,14 @@ def run_style_transfer_inference(content_image_paths, style_image_path, output_d
     
     print("Running inference...")
     # Apply style transfer using Ray Data
+    # Note: Ray doesn't have built-in MPS support, so we use CPU resources for MPS devices
+    device = get_best_device()
+    use_gpu_resources = torch.cuda.is_available()
+    
     results = dataset.map_batches(
         predictor,
         batch_size=2,  # Process 2 images at a time
-        num_gpus=1 if torch.cuda.is_available() else 0,
+        num_gpus=1 if use_gpu_resources else 0,
         num_cpus=2
     )
     
