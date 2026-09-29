@@ -1,0 +1,46 @@
+{
+  "hardware": "4 x NVIDIA A10G (one node)",
+  "machine": "AWS g5.12xlarge (48 vCPU, 4 x A10G 24 GB) on Anyscale",
+  "size": 512,
+  "steps": 300,
+  "torch": "2.8.0+cu128",
+  "ray": "2.49.1",
+  "results": [
+    {
+      "config": "cuda:1",
+      "device": "cuda",
+      "workers": 1,
+      "accelerator_fraction": 1.0,
+      "images": 32,
+      "wall_seconds": 319.9,
+      "images_per_minute": 6.0,
+      "median_seconds_per_image": 9.7,
+      "distinct_workers": 1,
+      "distinct_nodes": 1
+    },
+    {
+      "config": "cuda:2",
+      "device": "cuda",
+      "workers": 2,
+      "accelerator_fraction": 1.0,
+      "images": 32,
+      "wall_seconds": 164.7,
+      "images_per_minute": 11.66,
+      "median_seconds_per_image": 9.7,
+      "distinct_workers": 2,
+      "distinct_nodes": 1
+    },
+    {
+      "config": "cuda:4",
+      "device": "cuda",
+      "workers": 4,
+      "accelerator_fraction": 1.0,
+      "images": 32,
+      "wall_seconds": 96.3,
+      "images_per_minute": 19.94,
+      "median_seconds_per_image": 9.7,
+      "distinct_workers": 4,
+      "distinct_nodes": 1
+    }
+  ]
+}

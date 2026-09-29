@@ -1,0 +1,25 @@
+# One NVIDIA A10G (AWS g5.2xlarge): 1, 2 and 4 workers sharing the GPU.
+# Submit from the repository root:  anyscale job submit -f anyscale/a10g.yaml --wait
+name: nst-a10g
+image_uri: anyscale/ray:2.49.1-py312-cu128
+requirements:
+  - torch==2.8.0
+  - torchvision==0.23.0
+working_dir: .
+excludes: [.venv, .git, assets, outputs, docs, benchmarks, "*.ipynb"]
+py_modules: [src/neural_style_transfer]
+env_vars:
+  PYTHONPATH: src
+compute_config:
+  head_node:
+    instance_type: m5.2xlarge  # CPU-only head node runs the driver
+  worker_nodes:
+    - instance_type: g5.2xlarge
+      min_nodes: 1
+      max_nodes: 1
+      market_type: ON_DEMAND  # no spot interruptions mid-benchmark
+entrypoint: >-
+  python scripts/benchmark.py --images 8 --configs cuda:1 cuda:2@0.5 cuda:4@0.25
+  --work-dir /mnt/cluster_storage --results-dir /mnt/cluster_storage/results
+max_retries: 0
+timeout_s: 3600

@@ -46,9 +46,13 @@ def parse_config(spec: str) -> tuple[str, int, float]:
     return device, int(workers or 1), float(fraction or 1.0)
 
 
-def hardware_name() -> str:
-    if torch.cuda.is_available():
-        return f"{torch.cuda.device_count()} x {torch.cuda.get_device_name(0)}"
+def hardware_name(cluster: dict[str, float]) -> str:
+    gpus = int(cluster.get("GPU", 0))
+    if gpus:
+        # On a cluster the driver often runs on a CPU-only head node, so ask a GPU worker.
+        name = ray.get(ray.remote(num_gpus=1)(lambda: torch.cuda.get_device_name(0)).remote())
+        nodes = sum(1 for n in ray.nodes() if n["Alive"] and n["Resources"].get("GPU"))
+        return f"{gpus} x {name}" + (f" across {nodes} nodes" if nodes > 1 else "")
     if platform.system() == "Darwin":
         chip = subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True).stdout
         return chip.strip() or platform.machine()
@@ -74,25 +78,32 @@ def main() -> None:
     parser.add_argument("--steps", type=int, default=300)
     parser.add_argument("--style", default=str(ROOT / "samples" / "style" / "starry_night.jpg"))
     parser.add_argument("--results-dir", default=str(ROOT / "benchmarks"))
+    parser.add_argument(
+        "--work-dir",
+        help="where inputs and outputs are staged; must be shared storage on a multi-node cluster "
+        "(e.g. /mnt/cluster_storage on Anyscale). Defaults to a local temporary directory.",
+    )
     args = parser.parse_args()
 
     init_ray()
     cluster = ray.cluster_resources()
     configs = args.configs or default_configs(cluster)
     config = StyleConfig(size=args.size, steps=args.steps)
-    hardware = hardware_name()
+    hardware = hardware_name(cluster)
     print(f"{hardware} | torch {torch.__version__} | ray {ray.__version__} | {configs}")
 
     rows = []
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory(dir=args.work_dir) as tmp:
         tmp = Path(tmp)
         (tmp / "in").mkdir()
         content = make_workload(args.images, tmp / "in")
-        # Warm-up: downloads the VGG19 weights once so no run pays for it.
-        run_style_transfer(content[:1], args.style, tmp / "warmup", StyleConfig(size=64, steps=1), device="cpu")
 
         for spec in configs:
             device, workers, fraction = parse_config(spec)
+            # Warm-up with the same layout, so every node that runs this config has the
+            # VGG19 weights cached and the timed run does not pay for the download.
+            warmup = StyleConfig(size=64, steps=1)
+            run_style_transfer(content[:workers], args.style, tmp / "warmup", warmup, device, workers, fraction)
             start = time.perf_counter()
             records = run_style_transfer(
                 content, args.style, tmp / spec.replace(":", "_"), config, device, workers, fraction
@@ -111,6 +122,7 @@ def main() -> None:
                 "images_per_minute": round(60 * len(records) / wall, 2),
                 "median_seconds_per_image": round(statistics.median(r["seconds"] for r in records), 1),
                 "distinct_workers": len({r["worker"] for r in records}),
+                "distinct_nodes": len({r["worker"].rsplit(":", 1)[0] for r in records}),
             }
             rows.append(row)
             print(json.dumps(row))
