@@ -1,5 +1,7 @@
 ### Apple M4 Max
 
+MacBook Pro, Apple M4 Max: 16-core CPU (12 performance + 4 efficiency), 40-core GPU, 128 GB unified memory.
+
 8 images, 512px longest side, 300 L-BFGS steps each. torch 2.8.0, ray 2.49.1. Wall clock includes starting the Ray actors and loading VGG19.
 
 | Config | Workers | Share of accelerator per worker | Wall clock (s) | Images/min | Speed-up | Median s/image (per worker) |
