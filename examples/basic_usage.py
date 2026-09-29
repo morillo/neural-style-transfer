@@ -1,40 +1,26 @@
+"""Stylise the bundled sample photos with Van Gogh's Starry Night.
+
+pip install -e .
+python examples/basic_usage.py
 """
-Basic usage example for neural style transfer
-"""
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from pathlib import Path
 
-from src.neural_style_transfer import run_style_transfer_inference
+from neural_style_transfer import StyleConfig, run_style_transfer
 
-def main():
-    # Example content images (replace with your actual paths)
-    content_images = [
-        "assets/content1.jpg",
-        "assets/content2.jpg",
-    ]
-    
-    # Style image path (Van Gogh's Starry Night or any style image)
-    style_image = "assets/starry_night.jpg"
-    
-    # Check if files exist
-    for img_path in content_images + [style_image]:
-        if not os.path.exists(img_path):
-            print(f"Warning: {img_path} does not exist. Please add sample images to the assets/ directory.")
-            return
-    
-    print("Running neural style transfer...")
-    
-    # Run style transfer
-    results = run_style_transfer_inference(
-        content_image_paths=content_images,
-        style_image_path=style_image,
-        output_dir="./outputs"
+SAMPLES = Path(__file__).resolve().parent.parent / "samples"
+
+
+def main() -> None:
+    records = run_style_transfer(
+        content=[SAMPLES / "content"],
+        style_image=SAMPLES / "style" / "starry_night.jpg",
+        output_dir="outputs",
+        config=StyleConfig(size=512, steps=300),
     )
-    
-    print(f"Processed {len(results)} images successfully!")
-    print("Check the ./outputs directory for results.")
+    for record in records:
+        print(f"{record['status']:>4}  {record['seconds']:5.1f}s  {record['device']}  {record['output_path']}")
+
 
 if __name__ == "__main__":
     main()
