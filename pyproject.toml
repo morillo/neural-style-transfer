@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural-style-transfer"
+dynamic = ["version"]
+description = "Distributed neural style transfer (Gatys et al.) with PyTorch and Ray Data"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Carlos Morillo", email = "carlos.morillo@gmail.com" }]
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.1",
+    "torchvision>=0.16",
+    "ray[data]>=2.10",
+    "numpy>=1.24",
+    "Pillow>=10.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.5"]
+notebook = ["jupyter", "matplotlib"]
+
+[project.scripts]
+nst = "neural_style_transfer.cli:main"
+
+[project.urls]
+Repository = "https://github.com/morillo/neural-style-transfer"
+
+[tool.setuptools.dynamic]
+version = { attr = "neural_style_transfer.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["ray: starts a local Ray instance (slower)"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# StyleConfig is a frozen dataclass, so it is safe as a default argument.
+extend-immutable-calls = ["neural_style_transfer.transfer.StyleConfig", "StyleConfig"]
