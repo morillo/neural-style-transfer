@@ -107,7 +107,8 @@ The [notebook](neural_style_transfer_notebook.ipynb) walks through both paths an
 
 ## Benchmarks
 
-Measured on an Apple M4 Max (16-core CPU, 40-core GPU), with 8 images at 512px and 300 L-BFGS steps each.
+Measured on a MacBook Pro with an Apple M4 Max (16-core CPU: 12 performance + 4 efficiency cores, 40-core GPU,
+128 GB unified memory), with 8 images at 512px and 300 L-BFGS steps each.
 Wall clock includes starting the actors and loading VGG19. Full data: [`benchmarks/apple-m4-max.md`](benchmarks/apple-m4-max.md).
 
 | Config | Workers | GPU share per worker | Wall clock | Images/min | vs. 1 CPU worker | Median s/image |
@@ -128,7 +129,7 @@ What the numbers show:
   This is the reason fractional `num_gpus` exists, and the right share per worker has to be measured for each GPU
   type and image size.
 - **CPU scales poorly.** Splitting 15 cores into 4 workers beats one 15-thread worker by 1.6x, because a single
-  PyTorch process does not use all its threads efficiently. Even so, one GPU actor is 2.3x faster than the best CPU layout.
+  PyTorch process does not use all its threads efficiently (and 4 of the 16 cores are slower efficiency cores). Even so, one GPU actor is 2.3x faster than the best CPU layout.
 - **Latency vs. throughput.** The median time per image rises as workers share a device, while images per minute also
   rises. A batch job should optimise for throughput. An interactive service would pick a different point.
 
