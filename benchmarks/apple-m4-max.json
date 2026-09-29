@@ -1,0 +1,73 @@
+{
+  "hardware": "Apple M4 Max",
+  "size": 512,
+  "steps": 300,
+  "results": [
+    {
+      "config": "cpu:1",
+      "device": "cpu",
+      "workers": 1,
+      "accelerator_fraction": 1.0,
+      "images": 8,
+      "wall_seconds": 478.9,
+      "images_per_minute": 1.0,
+      "median_seconds_per_image": 61.7,
+      "distinct_workers": 1
+    },
+    {
+      "config": "cpu:2",
+      "device": "cpu",
+      "workers": 2,
+      "accelerator_fraction": 1.0,
+      "images": 8,
+      "wall_seconds": 352.8,
+      "images_per_minute": 1.36,
+      "median_seconds_per_image": 90.9,
+      "distinct_workers": 2
+    },
+    {
+      "config": "cpu:4",
+      "device": "cpu",
+      "workers": 4,
+      "accelerator_fraction": 1.0,
+      "images": 8,
+      "wall_seconds": 300.2,
+      "images_per_minute": 1.6,
+      "median_seconds_per_image": 146.0,
+      "distinct_workers": 4
+    },
+    {
+      "config": "mps:1",
+      "device": "mps",
+      "workers": 1,
+      "accelerator_fraction": 1.0,
+      "images": 8,
+      "wall_seconds": 132.5,
+      "images_per_minute": 3.62,
+      "median_seconds_per_image": 16.6,
+      "distinct_workers": 1
+    },
+    {
+      "config": "mps:2@0.5",
+      "device": "mps",
+      "workers": 2,
+      "accelerator_fraction": 0.5,
+      "images": 8,
+      "wall_seconds": 93.9,
+      "images_per_minute": 5.11,
+      "median_seconds_per_image": 23.0,
+      "distinct_workers": 2
+    },
+    {
+      "config": "mps:4@0.25",
+      "device": "mps",
+      "workers": 4,
+      "accelerator_fraction": 0.25,
+      "images": 8,
+      "wall_seconds": 84.8,
+      "images_per_minute": 5.66,
+      "median_seconds_per_image": 40.7,
+      "distinct_workers": 4
+    }
+  ]
+}
