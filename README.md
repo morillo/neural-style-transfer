@@ -113,8 +113,8 @@ VGG19, so small batches understate steady-state throughput. Raw results are in [
 ### NVIDIA GPUs on Anyscale
 
 Run as [Anyscale](https://www.anyscale.com/) Jobs on AWS (Ray 2.49.1, PyTorch 2.8.0 + CUDA 12.8), with a CPU-only
-head node driving GPU worker nodes. The job configs are in [`anyscale/`](anyscale/). All four jobs together cost
-under $2 of Anyscale credits.
+head node driving GPU worker nodes. The job configs are in [`anyscale/`](anyscale/). All four jobs together used
+about $3.20 of Anyscale credits, including cluster start-up.
 
 **Scaling out: one worker per GPU**
 
