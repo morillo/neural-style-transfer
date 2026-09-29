@@ -1,0 +1,25 @@
+# Four NVIDIA A10Gs in one node (AWS g5.12xlarge): scaling from 1 to 4 GPUs.
+# Submit from the repository root:  anyscale job submit -f anyscale/4xa10g.yaml --wait
+name: nst-4xa10g
+image_uri: anyscale/ray:2.49.1-py312-cu128
+requirements:
+  - torch==2.8.0
+  - torchvision==0.23.0
+working_dir: .
+excludes: [.venv, .git, assets, outputs, docs, benchmarks, "*.ipynb"]
+py_modules: [src/neural_style_transfer]
+env_vars:
+  PYTHONPATH: src
+compute_config:
+  head_node:
+    instance_type: m5.2xlarge  # CPU-only head node runs the driver
+  worker_nodes:
+    - instance_type: g5.12xlarge
+      min_nodes: 1
+      max_nodes: 1
+      market_type: ON_DEMAND  # no spot interruptions mid-benchmark
+entrypoint: >-
+  python scripts/benchmark.py --images 32 --configs cuda:1 cuda:2 cuda:4
+  --work-dir /mnt/cluster_storage --results-dir /mnt/cluster_storage/results
+max_retries: 0
+timeout_s: 3600
