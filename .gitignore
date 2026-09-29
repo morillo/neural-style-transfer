@@ -53,10 +53,12 @@ Thumbs.db
 # Project specific
 outputs/
 stylized_outputs/
-assets/*.jpg
-assets/*.png
-assets/*.jpeg
-!assets/README.md
+batch_outputs/
+# Personal photos stay local; the public samples live in samples/
+assets/
+*_result.png
+.ruff_cache/
+.pytest_cache/
 
 # Ray
 ray_results/
