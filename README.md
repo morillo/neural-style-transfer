@@ -10,6 +10,9 @@ It runs on NVIDIA GPUs (CUDA), Apple Silicon GPUs (MPS) and plain CPUs, and sche
 
 ![Starry Night applied to four photos](docs/images/results.jpg)
 
+> **New to style transfer, PyTorch or Ray?** [docs/how-it-works.md](docs/how-it-works.md) explains the ideas in plain
+> language and walks through one run of the program, step by step, with links to the code.
+
 ## Why this workload suits Ray
 
 Classic style transfer does not run a trained network forward once per image. For **each** image it
@@ -223,7 +226,9 @@ neural-style-transfer/
 ├── benchmarks/          # benchmark results (Markdown + JSON), Apple Silicon and NVIDIA
 ├── anyscale/            # Anyscale job configs used for the NVIDIA benchmarks
 ├── samples/             # public-domain / CC0 images, see samples/README.md
-├── docs/images/         # README figures
+├── docs/
+│   ├── how-it-works.md  # beginner's guide: concepts, walkthrough, glossary
+│   └── images/          # README figures
 ├── examples/basic_usage.py
 ├── neural_style_transfer_notebook.ipynb
 └── pyproject.toml
