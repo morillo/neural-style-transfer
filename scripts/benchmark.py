@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def default_configs(cluster: dict[str, float]) -> list[str]:
+    """Choose layouts to compare from the hardware the Ray cluster reports."""
     configs = ["cpu:1", "cpu:2", "cpu:4"]
     if cluster.get(MPS_RESOURCE):
         configs += ["mps:1", "mps:2@0.5"]
@@ -41,12 +42,14 @@ def default_configs(cluster: dict[str, float]) -> list[str]:
 
 
 def parse_config(spec: str) -> tuple[str, int, float]:
+    """Parse ``"device:workers[@fraction]"``, e.g. ``"cuda:4@0.5"`` -> ``("cuda", 4, 0.5)``."""
     device, _, rest = spec.partition(":")
     workers, _, fraction = rest.partition("@")
     return device, int(workers or 1), float(fraction or 1.0)
 
 
 def hardware_name(cluster: dict[str, float]) -> str:
+    """Describe the hardware for the results header, e.g. ``"4 x NVIDIA A10G"``."""
     gpus = int(cluster.get("GPU", 0))
     if gpus:
         # On a cluster the driver often runs on a CPU-only head node, so ask a GPU worker.
@@ -71,6 +74,7 @@ def make_workload(n: int, directory: Path) -> list[str]:
 
 
 def main() -> None:
+    """Run every requested layout on the same images and write a Markdown and JSON report."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--configs", nargs="+", help="e.g. cpu:1 mps:2@0.5 cuda:4@0.5")
     parser.add_argument("--images", type=int, default=8)
