@@ -1,0 +1,46 @@
+{
+  "hardware": "1 x NVIDIA L40S",
+  "machine": "AWS g6e.2xlarge on Anyscale",
+  "size": 512,
+  "steps": 300,
+  "torch": "2.8.0+cu128",
+  "ray": "2.49.1",
+  "results": [
+    {
+      "config": "cuda:1",
+      "device": "cuda",
+      "workers": 1,
+      "accelerator_fraction": 1.0,
+      "images": 8,
+      "wall_seconds": 41.9,
+      "images_per_minute": 11.46,
+      "median_seconds_per_image": 4.4,
+      "distinct_workers": 1,
+      "distinct_nodes": 1
+    },
+    {
+      "config": "cuda:2@0.5",
+      "device": "cuda",
+      "workers": 2,
+      "accelerator_fraction": 0.5,
+      "images": 8,
+      "wall_seconds": 60.8,
+      "images_per_minute": 7.9,
+      "median_seconds_per_image": 13.3,
+      "distinct_workers": 2,
+      "distinct_nodes": 1
+    },
+    {
+      "config": "cuda:4@0.25",
+      "device": "cuda",
+      "workers": 4,
+      "accelerator_fraction": 0.25,
+      "images": 8,
+      "wall_seconds": 58.5,
+      "images_per_minute": 8.2,
+      "median_seconds_per_image": 21.9,
+      "distinct_workers": 4,
+      "distinct_nodes": 1
+    }
+  ]
+}

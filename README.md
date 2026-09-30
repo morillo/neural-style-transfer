@@ -107,14 +107,14 @@ The [notebook](neural_style_transfer_notebook.ipynb) walks through both paths an
 
 ## Benchmarks
 
-All runs stylise 512px images with 300 L-BFGS steps each. Wall clock includes starting the Ray actors and loading
+All runs stylise 512px images (one run also 1024px) with 300 L-BFGS steps each. Wall clock includes starting the Ray actors and loading
 VGG19, so small batches understate steady-state throughput. Raw results are in [`benchmarks/`](benchmarks/).
 
 ### NVIDIA GPUs on Anyscale
 
 Run as [Anyscale](https://www.anyscale.com/) Jobs on AWS (Ray 2.49.1, PyTorch 2.8.0 + CUDA 12.8), with a CPU-only
-head node driving GPU worker nodes. The job configs are in [`anyscale/`](anyscale/). All four jobs together used
-about $3.20 of Anyscale credits, including cluster start-up.
+head node driving GPU worker nodes. The job configs are in [`anyscale/`](anyscale/). All the NVIDIA runs together
+used about $4 of Anyscale credits, including cluster start-up.
 
 **Scaling out: one worker per GPU**
 
@@ -136,6 +136,11 @@ about $3.20 of Anyscale credits, including cluster start-up.
 | L4 (g6.2xlarge) | 1 | 1.0 | 6.06 | 1.0x | 9.3 |
 | | 2 | 0.5 | 4.46 | 0.74x | 24.8 |
 | | 4 | 0.25 | 4.41 | 0.73x | 50.7 |
+| L40S (g6e.2xlarge) | 1 | 1.0 | 11.46 | 1.0x | 4.4 |
+| | 2 | 0.5 | 7.90 | 0.69x | 13.3 |
+| | 4 | 0.25 | 8.20 | 0.72x | 21.9 |
+| L40S, **1024px** images | 1 | 1.0 | 4.43 | 1.0x | 13.1 |
+| | 2 | 0.5 | 3.40 | 0.77x | 33.6 |
 
 ### Apple Silicon
 
@@ -158,14 +163,17 @@ memory), 8 images.
   instead of 4x) is fixed start-up cost: each run starts its actors and loads VGG19, and with only 8 images per GPU
   that overhead is a large share of a ~90 s run. Larger batches amortise it.
 - **Whether to share a GPU depends on the GPU.** On the Apple M4 Max GPU, two workers raised throughput by 41% and
-  four by 56%, so one image left the GPU partly idle. On NVIDIA A10G and L4 GPUs the opposite happened: sharing cut
-  throughput by about 27%, and each image took about 2.7–2.8x longer instead of the 2x that pure time-sharing would give.
-  One 512px image already keeps these GPUs busy, so a second process adds only contention. The likely cost is
+  four by 56%, so one image left the GPU partly idle. On every NVIDIA GPU tested (A10G, L4, L40S) the opposite happened:
+  two workers cut throughput by 26–31%, and each image took 2.7–3x longer instead of the 2x that pure time-sharing
+  would give. One image already keeps these GPUs busy, so a second process adds only contention. Larger images do
+  not change the answer: at 1024px on the L40S, sharing still cost 23%. The likely cost is
   switching between CUDA contexts: without NVIDIA's Multi-Process Service (MPS), kernels from separate processes
   time-share the GPU rather than running concurrently. Either way the conclusion holds: the right GPU share per
   worker has to be measured for each GPU type and image size, which is what `scripts/benchmark.py` is for.
-- **One NVIDIA A10G is worth about 1.7 Apple M4 Max GPUs here** for a single worker (9.8 s vs. 16.6 s per image),
-  and about 6x one worker on the Mac's CPU.
+- **GPU speed, one worker, 512px:** L40S 4.4 s per image, L4 9.3 s, A10G 9.8 s, Apple M4 Max GPU 16.6 s,
+  Mac CPU 61.7 s. The L40S is about 2.2x an A10G and 3.8x the Apple GPU.
+- **Bigger images use the GPU more efficiently.** On the L40S, 1024px images have 4x the pixels of 512px but took
+  only 3x as long (13.1 s vs. 4.4 s).
 - **CPU scales poorly.** Splitting 15 cores into 4 workers beats one 15-thread worker by only 1.6x. A single
   PyTorch process does not use all its threads efficiently, and 4 of the 16 cores are slower efficiency cores.
 - **Latency vs. throughput.** Sharing a device always makes each image slower. On the Mac it still raised images per
@@ -225,8 +233,8 @@ neural-style-transfer/
 
 - **Scope.** This is data-parallel scheduling of independent jobs. It is not distributed training: there
   is no gradient all-reduce, NCCL or model parallelism, because the workload does not need them.
-- **Tested hardware.** Benchmarked on Apple Silicon (CPU and MPS) and on NVIDIA A10G and L4 GPUs, up to 4 GPUs on
-  one node and across 2 nodes. Larger GPUs (A100, H100) and larger clusters have not been tested.
+- **Tested hardware.** Benchmarked on Apple Silicon (CPU and MPS) and on NVIDIA A10G, L4 and L40S GPUs, up to 4 GPUs
+  on one node and across 2 nodes. A100/H100 GPUs and larger clusters have not been tested.
 - **Outputs** are written by each worker to `output_dir`. On a multi-node cluster that must be shared
   storage (NFS or a mounted bucket).
 - **Speed.** Optimisation-based style transfer trades speed for quality and flexibility, since any style image works

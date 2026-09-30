@@ -1,0 +1,27 @@
+# One NVIDIA L40S (AWS g6e.2xlarge): GPU sharing at 512px and 1024px.
+# Submit from the repository root:  anyscale job submit -f anyscale/l40s.yaml --wait
+name: nst-l40s
+image_uri: anyscale/ray:2.49.1-py312-cu128
+requirements:
+  - torch==2.8.0
+  - torchvision==0.23.0
+working_dir: .
+excludes: [.venv, .git, assets, outputs, docs, benchmarks, "*.ipynb"]
+py_modules: [src/neural_style_transfer]
+env_vars:
+  PYTHONPATH: src
+compute_config:
+  head_node:
+    instance_type: m5.2xlarge  # CPU-only head node runs the driver
+  worker_nodes:
+    - instance_type: g6e.2xlarge
+      min_nodes: 1
+      max_nodes: 1
+      market_type: ON_DEMAND  # no spot interruptions mid-benchmark
+entrypoint: >-
+  python scripts/benchmark.py --images 8 --size 512 --configs cuda:1 cuda:2@0.5 cuda:4@0.25
+  --work-dir /mnt/cluster_storage --results-dir /mnt/cluster_storage/results-512 &&
+  python scripts/benchmark.py --images 8 --size 1024 --configs cuda:1 cuda:2@0.5
+  --work-dir /mnt/cluster_storage --results-dir /mnt/cluster_storage/results-1024
+max_retries: 0
+timeout_s: 2400
