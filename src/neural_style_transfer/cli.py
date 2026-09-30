@@ -18,6 +18,7 @@ def _display_path(path: str) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Define the ``nst`` command-line options (run ``nst --help`` to see them)."""
     parser = argparse.ArgumentParser(
         prog="nst",
         description="Distributed neural style transfer (Gatys et al.) with PyTorch and Ray Data.",
@@ -45,6 +46,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Run the ``nst`` command: stylise the given images and print a summary table.
+
+    Args:
+        argv: Command-line arguments; ``None`` means read them from ``sys.argv``.
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")

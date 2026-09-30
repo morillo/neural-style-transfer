@@ -1,4 +1,15 @@
-"""Neural style transfer with PyTorch, distributed across workers with Ray Data."""
+"""Neural style transfer with PyTorch, distributed across workers with Ray Data.
+
+Modules, in the order a newcomer might read them:
+
+- ``model``: VGG19 feature extraction and Gram matrices (how images are measured).
+- ``transfer``: the per-image optimisation (how one image is stylised).
+- ``pipeline``: Ray Data actors that stylise many images in parallel.
+- ``device``: CUDA / Apple MPS / CPU selection.
+- ``cli``: the ``nst`` command.
+
+See ``docs/how-it-works.md`` for a guided walkthrough.
+"""
 
 from .device import get_best_device
 from .model import VGGFeatures, gram_matrix
