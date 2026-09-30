@@ -11,6 +11,12 @@ from .pipeline import run_style_transfer
 from .transfer import StyleConfig
 
 
+def _display_path(path: str) -> str:
+    """Show paths under the current directory relative to it, and anything else in full."""
+    relative = os.path.relpath(path)
+    return path if relative.startswith("..") else relative
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="nst",
@@ -65,7 +71,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"\n{'image':<40} {'device':<6} {'seconds':>8}  output")
     for r in records:
         name = r["path"].rsplit("/", 1)[-1]
-        detail = os.path.relpath(r["output_path"]) if r["status"] == "ok" else r["status"]
+        detail = _display_path(r["output_path"]) if r["status"] == "ok" else r["status"]
         print(f"{name:<40} {r['device']:<6} {r['seconds']:>8.1f}  {detail}")
     print(
         f"\n{len(ok)}/{len(records)} images in {elapsed:.1f}s wall clock "
