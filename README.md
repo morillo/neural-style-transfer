@@ -206,7 +206,7 @@ The tests use randomly initialised VGG19 weights, so they need no download or GP
 matrices, layer selection, aspect-preserving I/O, loss decreasing during optimisation, device fallback,
 the Ray resource planner (CUDA fractions, MPS custom resource, CPU splits, over-subscription errors),
 and a real end-to-end Ray Data run with two actors and a corrupt input.
-[GitHub Actions](.github/workflows/ci.yml) runs them on Python 3.10 and 3.12.
+[GitHub Actions](.github/workflows/ci.yml) runs them on Python 3.12.
 
 ## Project structure
 

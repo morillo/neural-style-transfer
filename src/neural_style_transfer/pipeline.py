@@ -223,7 +223,7 @@ class StyleTransferWorker:
             ``device`` and ``worker`` (host and process ID, to show which actor ran it).
         """
         rows = []
-        for data, path in zip(batch["bytes"], batch["path"]):
+        for data, path in zip(batch["bytes"], batch["path"], strict=False):
             row = {"path": path, "output_path": "", "status": "ok", "seconds": 0.0, "steps": 0, "final_loss": np.nan}
             try:
                 result = self.engine.stylize(bytes(data))
