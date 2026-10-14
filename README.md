@@ -59,11 +59,10 @@ flowchart LR
 ```bash
 git clone https://github.com/morillo/neural-style-transfer.git
 cd neural-style-transfer
-python -m venv .venv && source .venv/bin/activate
-pip install -e .
+uv sync          # installs the pinned Python (.python-version) + locked deps into .venv
 
 # Stylise the bundled sample photos with Starry Night
-nst --style samples/style/starry_night.jpg samples/content -o outputs
+uv run nst --style samples/style/starry_night.jpg samples/content -o outputs
 ```
 
 ```
@@ -185,8 +184,8 @@ memory), 8 images.
 ### Reproducing
 
 ```bash
-python scripts/benchmark.py                                          # picks configs for this machine
-python scripts/benchmark.py --configs cuda:1 cuda:2@0.5 cuda:4@0.25  # e.g. on a single NVIDIA GPU
+uv run scripts/benchmark.py                                          # picks configs for this machine
+uv run scripts/benchmark.py --configs cuda:1 cuda:2@0.5 cuda:4@0.25  # e.g. on a single NVIDIA GPU
 
 # On Anyscale (after `pip install anyscale` and `anyscale login`), from the repository root:
 anyscale job submit -f anyscale/a10g.yaml --wait
@@ -198,9 +197,9 @@ Each config is `device:workers[@share_of_accelerator_per_worker]`. On a multi-no
 ## Tests
 
 ```bash
-pip install -e ".[dev]"
-pytest          # ~10 s, CPU only
-ruff check .
+uv sync --extra dev
+uv run pytest          # ~10 s, CPU only
+uv run ruff check .
 ```
 
 The tests use randomly initialised VGG19 weights, so they need no download or GPU. They cover Gram

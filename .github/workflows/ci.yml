@@ -13,18 +13,19 @@ jobs:
         python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
+          enable-cache: true
       - name: Install (CPU-only PyTorch keeps the runner small)
+        # uv.lock stays platform-neutral; CI swaps in the CPU wheels after syncing everything else.
         run: |
-          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[dev]"
+          uv sync --extra dev --no-install-package torch --no-install-package torchvision
+          uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
       - name: Lint
         run: |
-          ruff check .
-          ruff format --check src tests scripts examples
+          uv run --no-sync ruff check .
+          uv run --no-sync ruff format --check src tests scripts examples
       - name: Test
         # Tests use randomly initialised VGG19 weights, so nothing is downloaded.
-        run: pytest -v
+        run: uv run --no-sync pytest -v
