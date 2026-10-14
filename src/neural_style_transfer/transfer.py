@@ -27,7 +27,6 @@ import io
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union
 
 import torch
 import torch.nn.functional as F
@@ -37,7 +36,7 @@ from torchvision.transforms import functional as TF
 from .device import get_best_device, synchronize
 from .model import CONTENT_LAYERS, STYLE_LAYERS, VGGFeatures, gram_matrix
 
-ImageSource = Union[str, Path, bytes, Image.Image]
+ImageSource = str | Path | bytes | Image.Image
 """Anything :func:`load_image` accepts: a file path, the file's raw bytes, or a PIL image."""
 
 
