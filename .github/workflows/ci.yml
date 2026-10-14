@@ -24,8 +24,10 @@ jobs:
           uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
       - name: Lint
         run: |
-          uv run --no-sync ruff check .
-          uv run --no-sync ruff format --check src tests scripts examples
+          .venv/bin/ruff check .
+          .venv/bin/ruff format --check src tests scripts examples
       - name: Test
         # Tests use randomly initialised VGG19 weights, so nothing is downloaded.
-        run: uv run --no-sync pytest -v
+        # Call the venv directly (not `uv run`): Ray re-executes `uv run` inside its
+        # workers, which would re-sync the lock and undo the CPU-only torch above.
+        run: .venv/bin/pytest -v
