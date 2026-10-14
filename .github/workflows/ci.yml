@@ -8,14 +8,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python-version }}
           enable-cache: true
       - name: Install (CPU-only PyTorch keeps the runner small)
         # uv.lock stays platform-neutral; CI swaps in the CPU wheels after syncing everything else.

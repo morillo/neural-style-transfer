@@ -9,7 +9,7 @@ description = "Distributed neural style transfer (Gatys et al.) with PyTorch and
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Carlos Morillo", email = "carlos.morillo@gmail.com" }]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "torch>=2.1",
     "torchvision>=0.16",
@@ -45,7 +45,7 @@ markers = ["ray: starts a local Ray instance (slower)"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
