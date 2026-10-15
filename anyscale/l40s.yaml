@@ -1,6 +1,8 @@
 # One NVIDIA L40S (AWS g6e.2xlarge): GPU sharing at 512px and 1024px.
 # Submit from the repository root:  anyscale job submit -f anyscale/l40s.yaml --wait
 name: nst-l40s
+# Pinned to the versions the published benchmarks used (Ray 2.49.1, PyTorch 2.8.0), so reruns
+# are comparable. uv.lock may install newer versions locally; see README > Benchmarks > Versions.
 image_uri: anyscale/ray:2.49.1-py312-cu128
 requirements:
   - torch==2.8.0

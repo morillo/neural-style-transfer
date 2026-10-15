@@ -1,6 +1,8 @@
 # Two nodes with one NVIDIA A10G each (2 x AWS g5.2xlarge): multi-node scaling.
 # Submit from the repository root:  anyscale job submit -f anyscale/2node-a10g.yaml --wait
 name: nst-2node-a10g
+# Pinned to the versions the published benchmarks used (Ray 2.49.1, PyTorch 2.8.0), so reruns
+# are comparable. uv.lock may install newer versions locally; see README > Benchmarks > Versions.
 image_uri: anyscale/ray:2.49.1-py312-cu128
 requirements:
   - torch==2.8.0
