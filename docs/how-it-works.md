@@ -109,9 +109,10 @@ depends on any other. That is called **embarrassingly parallel**: with 4 GPUs yo
 **Why actors and not tasks?** Loading VGG19 and moving it to the GPU takes seconds. A task would
 repeat that for every image. An actor pays it once and then processes images back to back.
 
-**Why the Apple GPU needs special handling:** Ray counts NVIDIA GPUs automatically but not Apple
-GPUs. The program registers the Apple GPU as a custom resource called `mps`, so Ray still knows
-it has exactly one to share out.
+**Why the Apple GPU needs special handling:** Older Ray versions do not count Apple GPUs at all,
+and newer ones count them as a generic "GPU" that looks the same as an NVIDIA one. The program
+registers the Apple GPU as a custom resource called `mps`, so Ray knows it has exactly one to
+share out, and the program knows to use MPS rather than CUDA.
 
 ---
 
