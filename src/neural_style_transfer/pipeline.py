@@ -36,6 +36,7 @@ from __future__ import annotations
 import logging
 import os
 import socket
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -48,9 +49,10 @@ from .transfer import StyleConfig, StyleTransfer
 
 logger = logging.getLogger(__name__)
 
-# Ray schedules `num_gpus` against CUDA (and ROCm) devices only, so an Apple GPU is
-# invisible to it. We advertise it as a custom resource instead, which lets Ray cap
-# how many workers share the one Apple GPU exactly as it would for a CUDA device.
+# Older Ray versions (e.g. 2.49) do not detect Apple GPUs at all, and newer ones
+# (e.g. 2.59) report them as a generic "GPU" that looks the same as an NVIDIA one.
+# A dedicated custom resource works with both: Ray caps how many workers share the
+# Apple GPU exactly as it would for a CUDA device, and its presence tells us the GPU type.
 MPS_RESOURCE = "mps"
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
@@ -60,7 +62,8 @@ def init_ray(**kwargs: Any) -> None:
     """Start Ray locally (or connect to an existing cluster) if it is not running yet.
 
     On Apple Silicon it also registers the GPU as the custom resource ``{"mps": 1}``,
-    because Ray does not detect Apple GPUs on its own.
+    because depending on the version Ray either ignores Apple GPUs or cannot tell them
+    apart from NVIDIA GPUs.
 
     Args:
         **kwargs: Passed to ``ray.init``, e.g. ``address="auto"`` to join a cluster.
@@ -72,7 +75,7 @@ def init_ray(**kwargs: Any) -> None:
     ray.init(**kwargs)
 
 
-def detect_cluster_device(resources: dict[str, float]) -> str:
+def detect_cluster_device(resources: Mapping[str, float]) -> str:
     """Pick the accelerator from what the *cluster* has, not from the driver process.
 
     On a real cluster the script often runs on a CPU-only head node, so checking
@@ -84,10 +87,13 @@ def detect_cluster_device(resources: dict[str, float]) -> str:
     Returns:
         ``"cuda"``, ``"mps"`` or ``"cpu"``.
     """
-    if resources.get("GPU", 0) > 0:
-        return "cuda"
+    # Check the Apple GPU first: newer Ray versions (e.g. 2.59) also report an Apple
+    # GPU as a generic "GPU", so a GPU count alone no longer implies NVIDIA/CUDA.
+    # Only init_ray() on a Mac registers the "mps" resource, so it is unambiguous.
     if resources.get(MPS_RESOURCE, 0) > 0:
         return "mps"
+    if resources.get("GPU", 0) > 0:
+        return "cuda"
     return "cpu"
 
 
@@ -121,7 +127,7 @@ class ResourcePlan:
 
 def plan_resources(
     device: str,
-    cluster: dict[str, float],
+    cluster: Mapping[str, float],
     workers: int | None = None,
     accelerator_fraction: float = 1.0,
 ) -> ResourcePlan:
@@ -244,7 +250,7 @@ class StyleTransferWorker:
         return {key: np.array([r[key] for r in rows]) for key in rows[0]}
 
 
-def find_images(inputs: list[str | Path]) -> list[str]:
+def find_images(inputs: Sequence[str | Path]) -> list[str]:
     """Expand directories into the image files they contain.
 
     Args:
@@ -263,7 +269,7 @@ def find_images(inputs: list[str | Path]) -> list[str]:
 
 
 def run_style_transfer(
-    content: list[str | Path],
+    content: Sequence[str | Path],
     style_image: str | Path,
     output_dir: str | Path = "outputs",
     config: StyleConfig = StyleConfig(),

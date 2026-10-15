@@ -189,9 +189,11 @@ class StyleTransfer:
             optimizer.zero_grad()
             feats = self.features(image)
             # Content loss: are the deep features (what is where) still those of the photo?
-            content_loss = sum(F.mse_loss(feats[n], content_targets[n]) for n in CONTENT_LAYERS)
+            content_loss = torch.stack([F.mse_loss(feats[n], content_targets[n]) for n in CONTENT_LAYERS]).sum()
             # Style loss: do the texture statistics (Gram matrices) match the painting's, at every scale?
-            style_loss = sum(F.mse_loss(gram_matrix(feats[n]), self.style_grams[n]) for n in STYLE_LAYERS)
+            style_loss = torch.stack(
+                [F.mse_loss(gram_matrix(feats[n]), self.style_grams[n]) for n in STYLE_LAYERS]
+            ).sum()
             loss = cfg.content_weight * content_loss + cfg.style_weight * style_loss
             loss.backward()  # fills image.grad: how each pixel should change to lower the loss
             losses.append(loss.detach())

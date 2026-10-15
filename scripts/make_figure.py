@@ -22,7 +22,7 @@ def fit(image: Image.Image, height: int) -> Image.Image:
     return image.convert("RGB").resize((round(image.width * height / image.height), height), Image.Resampling.LANCZOS)
 
 
-def font(size: int) -> ImageFont.ImageFont:
+def font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Load a common system font, falling back to Pillow's built-in one."""
     for name in ("Helvetica.ttc", "Arial.ttf", "DejaVuSans.ttf"):
         try:

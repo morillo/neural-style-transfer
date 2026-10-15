@@ -46,7 +46,7 @@ flowchart LR
 |---|---|
 | **Stateful actors (a fixed-size actor pool), not tasks** | Each actor loads VGG19 (548 MB), moves it to the device and computes the style Gram matrices **once**, then stylises many images. Stateless tasks would repeat that for every image. |
 | **`num_gpus=accelerator_fraction`** | `--accelerator-fraction 0.5` puts two actors on each GPU. It is a knob to measure, not a default to trust: at 512px it raised throughput by 41% on an Apple M4 Max GPU but cut it by about 27% on NVIDIA A10G and L4 GPUs (see [benchmarks](#benchmarks)). |
-| **Apple GPU as a custom Ray resource** | Ray schedules `num_gpus` only against CUDA/ROCm devices, so an Apple GPU is invisible to it. `init_ray()` registers `{"mps": 1}` and each MPS actor reserves a share of it. Otherwise the only limit would be CPU slots, and many actors would contend for the one GPU. |
+| **Apple GPU as a custom Ray resource** | Older Ray versions (such as 2.49, used for the benchmarks) do not detect Apple GPUs, and newer ones (such as 2.59) report them as a generic `GPU` that cannot be told apart from an NVIDIA one. `init_ray()` registers `{"mps": 1}` and each MPS actor reserves a share of it, which works with both and tells the program which GPU type it has. Without it, older Ray would limit workers only by CPU slots, and newer Ray would make the program pick CUDA on a Mac. |
 | **One image in flight per actor** | Ray Data queues up to 4 batches per actor by default. With 10–60 s per image, the first actor to start took the whole batch while the others sat idle. The benchmark exposed this, and setting `max_tasks_in_flight_per_actor = 1` on the dataset's context fixed it. |
 | **CPU workers pin their PyTorch thread pool** | On CPU, each actor reserves `cores / workers` CPUs and calls `torch.set_num_threads` to match, so actors do not oversubscribe the cores. |
 | **Device chosen from cluster resources, not the driver** | On a cluster with a CPU-only head node, the driver has no GPU. The accelerator is detected from `ray.cluster_resources()` instead. |
@@ -187,7 +187,7 @@ memory), 8 images.
 uv run scripts/benchmark.py                                          # picks configs for this machine
 uv run scripts/benchmark.py --configs cuda:1 cuda:2@0.5 cuda:4@0.25  # e.g. on a single NVIDIA GPU
 
-# On Anyscale (after `pip install anyscale` and `anyscale login`), from the repository root:
+# On Anyscale (after `uv tool install anyscale` and `anyscale login`), from the repository root:
 anyscale job submit -f anyscale/a10g.yaml --wait
 ```
 
@@ -197,16 +197,17 @@ Each config is `device:workers[@share_of_accelerator_per_worker]`. On a multi-no
 ## Tests
 
 ```bash
-uv sync --extra dev
-uv run pytest          # ~10 s, CPU only
+uv sync               # also installs the dev tools: pytest, ruff, pyright
+uv run pytest         # CPU only, under a minute
 uv run ruff check .
+uv run pyright        # type check, same checker as VS Code's Pylance
 ```
 
 The tests use randomly initialised VGG19 weights, so they need no download or GPU. They cover Gram
 matrices, layer selection, aspect-preserving I/O, loss decreasing during optimisation, device fallback,
 the Ray resource planner (CUDA fractions, MPS custom resource, CPU splits, over-subscription errors),
 and a real end-to-end Ray Data run with two actors and a corrupt input.
-[GitHub Actions](.github/workflows/ci.yml) runs them on Python 3.12.
+[GitHub Actions](.github/workflows/ci.yml) runs them, the linter and Pyright on Python 3.12 for every push and pull request.
 
 ## Project structure
 

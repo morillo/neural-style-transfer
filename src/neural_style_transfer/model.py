@@ -62,6 +62,10 @@ class VGGFeatures(nn.Module):
         ValueError: If a layer name is not in :data:`LAYER_INDEX`.
     """
 
+    # Registered as buffers in __init__; declared here so type checkers know they are tensors.
+    mean: torch.Tensor
+    std: torch.Tensor
+
     def __init__(self, layers: Iterable[str] = STYLE_LAYERS + CONTENT_LAYERS, pretrained: bool = True):
         super().__init__()
         layers = tuple(layers)
@@ -71,6 +75,8 @@ class VGGFeatures(nn.Module):
 
         weights = models.VGG19_Weights.IMAGENET1K_V1 if pretrained else None
         vgg = models.vgg19(weights=weights).features
+        # torchvision types `.features` as a generic Module; it is an nn.Sequential, which can be sliced.
+        assert isinstance(vgg, nn.Sequential)
         last = max(LAYER_INDEX[name] for name in layers)
         self.body = vgg[: last + 1]
         # torchvision's ReLUs are in-place, which would overwrite activations we keep.

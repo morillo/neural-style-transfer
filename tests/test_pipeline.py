@@ -19,6 +19,12 @@ def test_detect_cluster_device():
     assert detect_cluster_device({"CPU": 8}) == "cpu"
 
 
+def test_detect_cluster_device_apple_gpu_reported_as_gpu():
+    # Newer Ray versions report an Apple Silicon GPU as a generic "GPU" as well as our
+    # "mps" resource; that must still mean MPS, not CUDA.
+    assert detect_cluster_device({"CPU": 16, "GPU": 1, MPS_RESOURCE: 1, "accelerator_type:M4-Max": 1}) == "mps"
+
+
 def test_plan_one_worker_per_gpu_by_default():
     plan = plan_resources("cuda", {"CPU": 32, "GPU": 4})
     assert (plan.workers, plan.num_gpus) == (4, 1.0)

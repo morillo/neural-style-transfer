@@ -27,7 +27,6 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff>=0.5"]
 notebook = ["jupyter", "matplotlib"]
 
 [project.scripts]
@@ -53,3 +52,10 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.lint.flake8-bugbear]
 # StyleConfig is a frozen dataclass, so it is safe as a default argument.
 extend-immutable-calls = ["neural_style_transfer.transfer.StyleConfig", "StyleConfig"]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.414",
+    "pytest>=9.1.1",
+    "ruff>=0.17.0",
+]
