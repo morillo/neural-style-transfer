@@ -112,6 +112,12 @@ The [notebook](neural_style_transfer_notebook.ipynb) walks through both paths an
 All runs stylise 512px images (one run also 1024px) with 300 L-BFGS steps each. Wall clock includes starting the Ray actors and loading
 VGG19, so small batches understate steady-state throughput. Raw results are in [`benchmarks/`](benchmarks/).
 
+> **Versions.** Every benchmark below ran on **Ray 2.49.1 and PyTorch 2.8.0**, and the
+> [`anyscale/`](anyscale/) job configs stay pinned to them so reruns are comparable. These are also the
+> minimum versions in `pyproject.toml`. A fresh `uv sync` installs the newer releases recorded in `uv.lock`
+> (Ray 2.59 and PyTorch 2.14 when this was written), which the tests and a full local run also pass on.
+> Timings on newer versions may differ.
+
 ### NVIDIA GPUs on Anyscale
 
 Run as [Anyscale](https://www.anyscale.com/) Jobs on AWS (Ray 2.49.1, PyTorch 2.8.0 + CUDA 12.8), with a CPU-only
