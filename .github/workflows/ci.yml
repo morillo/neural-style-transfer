@@ -9,19 +9,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true
       - name: Install (CPU-only PyTorch keeps the runner small)
         # uv.lock stays platform-neutral; CI swaps in the CPU wheels after syncing everything else.
         run: |
-          uv sync --extra dev --no-install-package torch --no-install-package torchvision
+          uv sync --locked --no-install-package torch --no-install-package torchvision
           uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
       - name: Lint
         run: |
-          .venv/bin/ruff check .
-          .venv/bin/ruff format --check src tests scripts examples
+          uv run --no-sync ruff check .
+          uv run --no-sync ruff format --check src tests scripts examples
+      - name: Pyright type check (same checks as VS Code Pylance)
+        run: uv run --no-sync pyright
       - name: Test
         # Tests use randomly initialised VGG19 weights, so nothing is downloaded.
         # Call the venv directly (not `uv run`): Ray re-executes `uv run` inside its

@@ -187,7 +187,7 @@ memory), 8 images.
 uv run scripts/benchmark.py                                          # picks configs for this machine
 uv run scripts/benchmark.py --configs cuda:1 cuda:2@0.5 cuda:4@0.25  # e.g. on a single NVIDIA GPU
 
-# On Anyscale (after `pip install anyscale` and `anyscale login`), from the repository root:
+# On Anyscale (after `uv tool install anyscale` and `anyscale login`), from the repository root:
 anyscale job submit -f anyscale/a10g.yaml --wait
 ```
 
@@ -197,16 +197,17 @@ Each config is `device:workers[@share_of_accelerator_per_worker]`. On a multi-no
 ## Tests
 
 ```bash
-uv sync --extra dev
-uv run pytest          # ~10 s, CPU only
+uv sync               # also installs the dev tools: pytest, ruff, pyright
+uv run pytest         # CPU only, under a minute
 uv run ruff check .
+uv run pyright        # type check, same checker as VS Code's Pylance
 ```
 
 The tests use randomly initialised VGG19 weights, so they need no download or GPU. They cover Gram
 matrices, layer selection, aspect-preserving I/O, loss decreasing during optimisation, device fallback,
 the Ray resource planner (CUDA fractions, MPS custom resource, CPU splits, over-subscription errors),
 and a real end-to-end Ray Data run with two actors and a corrupt input.
-[GitHub Actions](.github/workflows/ci.yml) runs them on Python 3.12.
+[GitHub Actions](.github/workflows/ci.yml) runs them, the linter and Pyright on Python 3.12 for every push and pull request.
 
 ## Project structure
 

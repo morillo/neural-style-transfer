@@ -1,7 +1,7 @@
 """Stylise the bundled sample photos with Van Gogh's Starry Night.
 
-pip install -e .
-python examples/basic_usage.py
+uv sync
+uv run examples/basic_usage.py
 """
 
 from pathlib import Path

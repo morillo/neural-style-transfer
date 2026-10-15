@@ -19,6 +19,7 @@ import statistics
 import subprocess
 import tempfile
 import time
+from collections.abc import Mapping
 from pathlib import Path
 
 import ray
@@ -30,7 +31,7 @@ from neural_style_transfer.transfer import StyleConfig
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def default_configs(cluster: dict[str, float]) -> list[str]:
+def default_configs(cluster: Mapping[str, float]) -> list[str]:
     """Choose layouts to compare from the hardware the Ray cluster reports."""
     configs = ["cpu:1", "cpu:2", "cpu:4"]
     if cluster.get(MPS_RESOURCE):
@@ -48,7 +49,7 @@ def parse_config(spec: str) -> tuple[str, int, float]:
     return device, int(workers or 1), float(fraction or 1.0)
 
 
-def hardware_name(cluster: dict[str, float]) -> str:
+def hardware_name(cluster: Mapping[str, float]) -> str:
     """Describe the hardware for the results header, e.g. ``"4 x NVIDIA A10G"``."""
     gpus = int(cluster.get("GPU", 0))
     if gpus:

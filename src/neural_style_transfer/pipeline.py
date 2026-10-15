@@ -36,6 +36,7 @@ from __future__ import annotations
 import logging
 import os
 import socket
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -72,7 +73,7 @@ def init_ray(**kwargs: Any) -> None:
     ray.init(**kwargs)
 
 
-def detect_cluster_device(resources: dict[str, float]) -> str:
+def detect_cluster_device(resources: Mapping[str, float]) -> str:
     """Pick the accelerator from what the *cluster* has, not from the driver process.
 
     On a real cluster the script often runs on a CPU-only head node, so checking
@@ -121,7 +122,7 @@ class ResourcePlan:
 
 def plan_resources(
     device: str,
-    cluster: dict[str, float],
+    cluster: Mapping[str, float],
     workers: int | None = None,
     accelerator_fraction: float = 1.0,
 ) -> ResourcePlan:
@@ -244,7 +245,7 @@ class StyleTransferWorker:
         return {key: np.array([r[key] for r in rows]) for key in rows[0]}
 
 
-def find_images(inputs: list[str | Path]) -> list[str]:
+def find_images(inputs: Sequence[str | Path]) -> list[str]:
     """Expand directories into the image files they contain.
 
     Args:
@@ -263,7 +264,7 @@ def find_images(inputs: list[str | Path]) -> list[str]:
 
 
 def run_style_transfer(
-    content: list[str | Path],
+    content: Sequence[str | Path],
     style_image: str | Path,
     output_dir: str | Path = "outputs",
     config: StyleConfig = StyleConfig(),
